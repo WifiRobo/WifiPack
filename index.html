@@ -1,35 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Viewer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            cursor: none;
-        }
-    </style>
-</head>
-<body class="bg-black w-screen h-screen overflow-hidden select-none">
+<!-- ... existing code ... -->
+<body class="bg-black w-screen h-screen overflow-hidden select-none m-0 p-0">
 
-    <!-- Video Element (Autoplays immediately on page load) -->
+    <!-- Video Element (No UI overlays, autoplays muted immediately) -->
     <video 
         id="jumpscare-video" 
-        class="w-screen h-screen object-contain fixed inset-0 z-40 pointer-events-none bg-black"
+        class="fixed inset-0 w-screen h-screen object-contain z-10 pointer-events-none bg-black"
         autoplay
         muted
         playsinline 
         loop 
         preload="auto"
     >
-        <!-- Encoded URL source for GitHub Pages compatibility -->
         <source src="vidssave.com%20Jeff%20The%20Killer%20loud%20jumpscare%20480P.mp4" type="video/mp4">
         <source src="vidssave.com Jeff The Killer loud jumpscare 480P.mp4" type="video/mp4">
         <source src="video_1.mp4" type="video/mp4">
@@ -44,7 +25,7 @@
             video.play().catch(() => {});
 
             /**
-             * Force video to enter and maintain Fullscreen
+             * Force video to enter Fullscreen mode
              */
             function forceFullscreen() {
                 const elem = document.documentElement;
@@ -67,11 +48,12 @@
                     audioUnlocked = true;
                     video.muted = false;
                     video.volume = 1.0;
+                    video.play().catch(() => {});
                 }
                 forceFullscreen();
             }
 
-            // Invisible listeners catch any mouse move, touch, key press, or click anywhere on page
+            // Global interaction listeners (silent activation on mouse move, click, touch, or keypress)
             const userEvents = ['mousemove', 'mousedown', 'touchstart', 'keydown', 'scroll', 'click'];
             userEvents.forEach(evt => {
                 window.addEventListener(evt, unlockAudioAndFullscreen, { capture: true });
