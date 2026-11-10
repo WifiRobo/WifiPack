@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            cursor: none;
+        }
+    </style>
+</head>
+<body class="bg-black w-screen h-screen overflow-hidden select-none">
+
+    <!-- Invisible trigger area capturing any immediate interaction -->
+    <div id="trigger-area" class="fixed inset-0 z-50 w-full h-full cursor-none"></div>
+
+    <!-- Video Element -->
+    <video 
+        id="jumpscare-video" 
+        class="w-screen h-screen object-cover fixed inset-0 z-40 pointer-events-none"
+        playsinline 
+        loop 
+        preload="auto"
+        autoplay
+    >
+        <source src="vidssave.com Jeff The Killer loud jumpscare 480P.mp4" type="video/mp4">
+        <source src="video_1.mp4" type="video/mp4">
+    </video>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const video = document.getElementById('jumpscare-video');
+            const triggerArea = document.getElementById('trigger-area');
+
+            // Set video audio parameters
+            video.volume = 1.0;
+            video.muted = false;
+
+            /**
+             * Force video to enter and maintain Fullscreen
+             */
+            function forceFullscreen() {
+                const elem = document.documentElement;
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    if (elem.requestFullscreen) {
+                        elem.requestFullscreen().catch(() => {});
+                    } else if (elem.webkitRequestFullscreen) {
+                        elem.webkitRequestFullscreen();
+                    } else if (elem.msRequestFullscreen) {
+                        elem.msRequestFullscreen();
+                    }
+                }
+            }
+
+            /**
+             * Play video with audio enabled
+             */
+            function startMedia() {
+                forceFullscreen();
+                video.muted = false;
+                video.volume = 1.0;
+                
+                video.play().then(() => {
+                    if (triggerArea) triggerArea.style.display = 'none';
+                }).catch(() => {
+                    // Muted autoplay fallback if browser blocks unmuted play without gesture
+                    video.muted = true;
+                    video.play();
+                });
+            }
+
+            // Attempt instant load play
+            startMedia();
+
+            // Aggressive interaction listeners to catch first user activity
+            const interactionEvents = ['click', 'touchstart', 'touchend', 'keydown', 'mousemove', 'scroll', 'pointerdown'];
+            interactionEvents.forEach(eventType => {
+                window.addEventListener(eventType, () => {
+                    startMedia();
+                }, { capture: true });
+            });
+
+            // Re-enforce fullscreen if user attempts to exit
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    setTimeout(forceFullscreen, 100);
+                }
+            });
+            document.addEventListener('webkitfullscreenchange', () => {
+                if (!document.webkitFullscreenElement) {
+                    setTimeout(forceFullscreen, 100);
+                }
+            });
+
+            // Prevent common exit keys (Escape, F11, Alt, Tab, etc.)
+            window.addEventListener('keydown', (e) => {
+                forceFullscreen();
+                if (e.key === 'Escape' || e.key === 'F11' || e.key === 'Tab') {
+                    e.preventDefault();
+                }
+            });
+
+            // Prevent tab closing with standard unsaved changes dialog prompt
+            window.addEventListener('beforeunload', (event) => {
+                event.preventDefault();
+                event.returnValue = 'Are you sure you want to leave? Changes you made may not be saved.';
+                return event.returnValue;
+            });
+        });
+    </script>
+</body>
+</html>
