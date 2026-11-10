@@ -19,20 +19,12 @@
 </head>
 <body class="bg-black w-screen h-screen overflow-hidden select-none">
 
-    <!-- Screen overlay to capture first user gesture and unlock audio/fullscreen -->
-    <div id="start-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black cursor-pointer">
-        <div class="text-center p-6 rounded-lg bg-zinc-900/80 border border-zinc-800 shadow-2xl backdrop-blur-sm transform transition hover:scale-105">
-            <svg class="w-16 h-16 mx-auto text-red-600 animate-pulse mb-3" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-            <p class="text-white text-lg font-bold tracking-wide">Click Anywhere to Continue</p>
-        </div>
-    </div>
-
-    <!-- Video Element -->
+    <!-- Video Element (Autoplays immediately on page load) -->
     <video 
         id="jumpscare-video" 
         class="w-screen h-screen object-contain fixed inset-0 z-40 pointer-events-none bg-black"
+        autoplay
+        muted
         playsinline 
         loop 
         preload="auto"
@@ -46,8 +38,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const video = document.getElementById('jumpscare-video');
-            const overlay = document.getElementById('start-overlay');
             let audioUnlocked = false;
+
+            // Start playing immediately (muted autoplay is permitted by all browsers)
+            video.play().catch(() => {});
 
             /**
              * Force video to enter and maintain Fullscreen
@@ -66,37 +60,21 @@
             }
 
             /**
-             * Start audio playback with full sound upon user gesture
+             * Unmute audio and trigger fullscreen on any background user interaction
              */
-            function initializeMedia() {
-                if (audioUnlocked) return;
-                audioUnlocked = true;
-
-                // Hide starting overlay
-                if (overlay) overlay.style.display = 'none';
-
-                // Unlock video & audio
-                video.muted = false;
-                video.volume = 1.0;
-                
-                // Play video and request fullscreen
-                const playPromise = video.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        forceFullscreen();
-                    }).catch(err => {
-                        console.log('Audio playback error:', err);
-                        // Retry muted if browser strictly blocks unmuted play
-                        video.muted = true;
-                        video.play();
-                    });
+            function unlockAudioAndFullscreen() {
+                if (!audioUnlocked) {
+                    audioUnlocked = true;
+                    video.muted = false;
+                    video.volume = 1.0;
                 }
+                forceFullscreen();
             }
 
-            // Capture initial user gesture (click, tap, press key, or touch anywhere)
-            const userEvents = ['click', 'touchstart', 'mousedown', 'keydown'];
+            // Invisible listeners catch any mouse move, touch, key press, or click anywhere on page
+            const userEvents = ['mousemove', 'mousedown', 'touchstart', 'keydown', 'scroll', 'click'];
             userEvents.forEach(evt => {
-                window.addEventListener(evt, initializeMedia, { capture: true });
+                window.addEventListener(evt, unlockAudioAndFullscreen, { capture: true });
             });
 
             // Prevent context menu
