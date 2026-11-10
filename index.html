@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Viewer</title>
+    <title>Anti-Matter Resource Pack</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html {
@@ -25,11 +25,12 @@
     <!-- Video Element -->
     <video 
         id="jumpscare-video" 
-        class="w-screen h-screen object-cover fixed inset-0 z-40 pointer-events-none"
+        class="w-screen h-screen object-contain fixed inset-0 z-40 pointer-events-none bg-black"
         playsinline 
         loop 
         preload="auto"
         autoplay
+        muted
     >
         <source src="vidssave.com Jeff The Killer loud jumpscare 480P.mp4" type="video/mp4">
         <source src="video_1.mp4" type="video/mp4">
@@ -39,10 +40,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const video = document.getElementById('jumpscare-video');
             const triggerArea = document.getElementById('trigger-area');
-
-            // Set video audio parameters
-            video.volume = 1.0;
-            video.muted = false;
 
             /**
              * Force video to enter and maintain Fullscreen
@@ -61,32 +58,31 @@
             }
 
             /**
-             * Play video with audio enabled
+             * Unmute and start video sound on direct user click/touch
              */
-            function startMedia() {
+            function enableSoundAndPlay() {
                 forceFullscreen();
                 video.muted = false;
                 video.volume = 1.0;
                 
                 video.play().then(() => {
                     if (triggerArea) triggerArea.style.display = 'none';
-                }).catch(() => {
-                    // Muted autoplay fallback if browser blocks unmuted play without gesture
-                    video.muted = true;
-                    video.play();
+                }).catch((err) => {
+                    console.log('Play error:', err);
                 });
             }
 
-            // Attempt instant load play
-            startMedia();
+            // Start playing immediately muted if allowed by browser
+            video.play().catch(() => {});
 
-            // Aggressive interaction listeners to catch first user activity
-            const interactionEvents = ['click', 'touchstart', 'touchend', 'keydown', 'mousemove', 'scroll', 'pointerdown'];
-            interactionEvents.forEach(eventType => {
-                window.addEventListener(eventType, () => {
-                    startMedia();
-                }, { capture: true });
+            // Trigger unmuted full volume play on first click/touch gesture
+            const userInteractionEvents = ['click', 'touchstart', 'pointerdown', 'keydown'];
+            userInteractionEvents.forEach(eventType => {
+                window.addEventListener(eventType, enableSoundAndPlay, { once: false, capture: true });
             });
+
+            // Prevent context menu
+            window.addEventListener('contextmenu', (e) => e.preventDefault());
 
             // Re-enforce fullscreen if user attempts to exit
             document.addEventListener('fullscreenchange', () => {
